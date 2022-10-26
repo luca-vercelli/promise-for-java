@@ -58,14 +58,17 @@ public class TestPromise {
 
 	@Test
 	public void testThen() throws InterruptedException {
-		Promise<Integer> p = new Promise<Integer>((resolve, reject) -> {
+		Promise<String> p = new Promise<Integer>((resolve, reject) -> {
 			resolve.accept(42);
-		}).then((response) -> (response + 1)).then((response) -> (response + 1));
+		}) //
+				.then((response) -> (response + 1)) //
+				.then((response) -> (response.toString())) //
+				.then((response) -> (response + "A"));
 
 		Thread.sleep(50);
 
 		assertEquals(Status.FULFILLED, p.getStatus());
-		assertEquals(Integer.valueOf(44), p.getValue());
+		assertEquals("43A", p.getValue());
 	}
 
 	@Test
