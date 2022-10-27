@@ -3,12 +3,12 @@ JavaScript-like Promise for Java
 
 This project is inspired by https://github.com/riversun/java-promise and https://www.promisejs.org/implementing/.
 
-Differently from `java-promise`, we
+Main features:
 
-1. use Java generics
-2. use Java functional interfaces
-3. always run `Promise`'s in a new tread (please note that Javascript is single-threaded, while Java is not, it's difficult for use to use a single thread)
-4. avoid any kind of `start()` method to trigger promise
+* use Java functional interfaces
+* use Java generics
+* always run `Promise`'s in a new tread
+* avoid any kind of `start()` method to trigger promise
 
 
 We also add some (naive) implementation of the `fetch` Javascript API for accessing web resources.
@@ -25,7 +25,7 @@ Creating promises:
 
     Promise<Integer> p1 = Promise.resolve(42);
     Promise<Integer> p2 = Promise.resolve((resolve,reject) -> {
-        SetTimeout.setTimeout(() -> { resolve(43); }, 1000);
+        SetTimeout.setTimeout(() -> { resolve.accept(43); }, 1000);
     });
 
 Chaining promises:
