@@ -11,15 +11,47 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.github.promise.Promise;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.github.promise.Promise;
 
 public class Response {
-	public String url;
-	public int status = 0;
-	public InputStream body;
-	public Map<String, List<String>> headers = new LinkedHashMap<>();
+	private String url;
+	private int status = -1;
+	private InputStream body;
+	private Map<String, List<String>> headers = new LinkedHashMap<>();
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public InputStream getBody() {
+		return body;
+	}
+
+	public void setBody(InputStream body) {
+		this.body = body;
+	}
+
+	public Map<String, List<String>> getHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(Map<String, List<String>> headers) {
+		this.headers = headers;
+	}
 
 	/**
 	 * True if status is between 200 and 299.
@@ -34,12 +66,14 @@ public class Response {
 	 * 
 	 * @throws IOException
 	 */
-	public String text() {
-		try {
-			return is2string(this.body);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	public Promise<String> text() {
+		return new Promise<>((resolve, reject) -> {
+			try {
+				resolve.accept(is2string(this.body));
+			} catch (IOException e) {
+				reject.accept(e);
+			}
+		});
 	}
 
 	/**
@@ -49,8 +83,8 @@ public class Response {
 	 * @throws IOException
 	 * @throws JsonSyntaxException
 	 */
-	public <W> W json(Class<W> type) {
-		return new Gson().fromJson(text(), type);
+	public <W> Promise<W> json(Class<W> type) {
+		return text().then((text) -> (new Gson().fromJson(text, type)));
 	}
 
 	/**
