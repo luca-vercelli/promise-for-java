@@ -17,6 +17,7 @@ JavaScript API are defined here:
 [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise),
 [Fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
 
+Require at least Java 8.
 
 ## Usage
 
