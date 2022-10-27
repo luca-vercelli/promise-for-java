@@ -58,47 +58,74 @@ public class TestPromise {
 
 	@Test
 	public void testThen() throws InterruptedException {
-		Promise<Integer> p = new Promise<Integer>((resolve, reject) -> {
+		Promise<String> p = new Promise<Integer>((resolve, reject) -> {
 			resolve.accept(42);
-		}).then((response) -> (response + 1)).then((response) -> (response + 1));
+		}) //
+				.then((response) -> (response + 1)) //
+				.then((response) -> (response.toString())) //
+				.then((response) -> (response + "A"));
 
 		Thread.sleep(50);
 
 		assertEquals(Status.FULFILLED, p.getStatus());
-		assertEquals(Integer.valueOf(44), p.getValue());
+		assertEquals("43A", p.getValue());
 	}
 
 	@Test
 	public void testAll() throws InterruptedException {
-		Promise<Integer> p1 = new ExamplePromise(42, 0);
-		Promise<Integer> p2 = new ExamplePromise(43, 0);
-		List<Integer> result = new ArrayList<>();
+		Promise<Integer> p1 = Promise.resolve(42);
+		Promise<Integer> p2 = Promise.resolve(43);
+		Promise<List<Integer>> p = Promise.all(p1, p2);
 
-		Promise.all(p1, p2).then(l -> {
-			result.addAll(l);
-		});
+		Thread.sleep(100);
 
-		Thread.sleep(500);
-
-		assertEquals(2, result.size());
-		assertTrue(result.contains(42));
-		assertTrue(result.contains(43));
+		assertEquals(Status.FULFILLED, p.getStatus());
+		List<Integer> l = p.getValue();
+		assertNotNull(l);
+		assertEquals(2, l.size());
+		assertTrue(l.contains(42));
+		assertTrue(l.contains(43));
 	}
 
 	@Test
 	public void testAny() throws InterruptedException {
-		Promise<Integer> p1 = new ExamplePromise(42, 0);
-		Promise<Integer> p2 = new ExamplePromise(43, 0);
-		List<Integer> result = new ArrayList<>();
+		Promise<Integer> p1 = Promise.resolve(42);
+		Promise<Integer> p2 = Promise.resolve(43);
+		Promise<Integer> p = Promise.any(p1, p2);
 
-		Promise.any(p1, p2).then(i -> {
-			Promise.LOGGER.info("XXX");
-			result.add(i);
-		});
+		Thread.sleep(100);
 
-		Thread.sleep(500);
+		assertEquals(Status.FULFILLED, p.getStatus());
+		assertTrue(p.getValue().equals(42) || p.getValue().equals(43));
+	}
 
-		assertEquals(1, result.size());
-		assertTrue(result.contains(42) || result.contains(43));
+	@Test
+	public void testAllSettled() throws InterruptedException {
+		Exception e = new Exception("foo");
+		Promise<Integer> p1 = Promise.resolve(42);
+		Promise<Integer> p2 = Promise.reject(e);
+		Promise<List<Object>> p = Promise.allSettled(p1, p2);
+
+		Thread.sleep(100);
+
+		assertEquals(Status.FULFILLED, p.getStatus());
+		List<Object> l = p.getValue();
+		assertNotNull(l);
+		assertEquals(2, l.size());
+		assertTrue(l.contains(42));
+		assertTrue(l.contains(e));
+	}
+
+	@Test
+	public void testRace() throws InterruptedException {
+		Exception e = new Exception("foo");
+		Promise<Integer> p1 = Promise.resolve(42);
+		Promise<Integer> p2 = Promise.reject(e);
+		Promise<Object> p = Promise.race(p1, p2);
+
+		Thread.sleep(100);
+
+		assertEquals(Status.FULFILLED, p.getStatus());
+		assertTrue(p.getValue().equals(42) || p.getValue().equals(e));
 	}
 }
