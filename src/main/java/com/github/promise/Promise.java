@@ -34,6 +34,7 @@ public class Promise<T> {
 	 */
 	public Promise(BiConsumer<Consumer<T>, Consumer<Exception>> fn) {
 		status = Status.PENDING;
+
 		Consumer<T> fulfill = (value) -> {
 			Promise.this.value = value;
 			Promise.this.status = Status.FULFILLED;
@@ -51,9 +52,14 @@ public class Promise<T> {
 				reject.accept(e);
 			}
 		};
-		setTimeout(() -> {
-			doResolve(fn, resolve, reject);
-		}, 0);
+
+		Thread t = new Thread() {
+			@Override
+			public void run() {
+				doResolve(fn, resolve, reject);
+			}
+		};
+		t.start();
 	}
 
 	/**
@@ -108,8 +114,8 @@ public class Promise<T> {
 	 */
 	protected static <W> void doResolve(BiConsumer<Consumer<W>, Consumer<Exception>> fn, Consumer<W> onFulfilled,
 			Consumer<Exception> onRejected) {
-		// we use boolean[] instead of boolean to avoid error "Local variable defined in
-		// an enclosing scope must be final or effectively final"
+		// we use BooleanHolder instead of boolean to avoid error "Local variable
+		// defined in an enclosing scope must be final or effectively final"
 		BooleanHolder done = new BooleanHolder();
 		done.value = false;
 		try {
@@ -168,7 +174,7 @@ public class Promise<T> {
 	 * Handle all handlers that were expecting for this promise.
 	 */
 	protected void handleHandlers() {
-		for (Promise<T>.Handler handler:handlers) {
+		for (Promise<T>.Handler handler : handlers) {
 			handle(handler);
 		}
 		handlers.clear();
