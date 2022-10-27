@@ -22,12 +22,23 @@ public class SetTimeout {
 				try {
 					Thread.sleep(ms);
 				} catch (InterruptedException e) {
-					throw new IllegalStateException(e);
+					// clearInterval was called
+					return;
 				}
 				runnable.run();
 			}
 		};
 		t.start();
 		return t;
+	}
+
+	/**
+	 * Ask a thread to stop. Just an alias for <code>Thread.interrupt()</code>, with
+	 * a name remembering JavaScript equivalent.
+	 * 
+	 * @param t
+	 */
+	public static void clearTimeout(Thread t) {
+		t.interrupt();
 	}
 }
