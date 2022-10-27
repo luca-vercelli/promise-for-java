@@ -4,17 +4,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * An exception aggregating other exceptions
+ * An Exception aggregating other Exception's (not Error's!)
  */
-public class AggregateException extends Throwable {
+public class AggregateException extends Exception {
 	private static final long serialVersionUID = -6677541369658385881L;
-	private List<Throwable> exceptions = new LinkedList<>();
+	private List<Exception> exceptions = new LinkedList<>();
 
-	public AggregateException(List<Throwable> exceptions) {
+	public AggregateException(List<Exception> exceptions) {
 		this.exceptions.addAll(exceptions);
 	}
 
-	public List<Throwable> getExceptions() {
+	public List<Exception> getExceptions() {
 		return exceptions;
 	}
 

@@ -25,7 +25,7 @@ public class Promise<T> {
 
 	protected Status status;
 	protected T value;
-	protected Throwable error;
+	protected Exception error;
 	protected List<Handler> handlers = new LinkedList<>();
 
 	static final Logger LOGGER = Logger.getLogger("com.github.promise");
@@ -36,7 +36,7 @@ public class Promise<T> {
 	 * @param fn a consumer that takes two argument (resolve, reject) as by
 	 *           specification of Promise
 	 */
-	public Promise(BiConsumer<Consumer<T>, Consumer<Throwable>> fn) {
+	public Promise(BiConsumer<Consumer<T>, Consumer<Exception>> fn) {
 		status = Status.PENDING;
 		LOGGER.fine("Promise constructor BEGIN " + Thread.currentThread().getName());
 		Consumer<T> fulfill = (value) -> {
@@ -44,7 +44,7 @@ public class Promise<T> {
 			Promise.this.status = Status.FULFILLED;
 			LOGGER.info("Promise FULFILLED " + Thread.currentThread().getName());
 		};
-		Consumer<Throwable> reject = (error) -> {
+		Consumer<Exception> reject = (error) -> {
 			this.error = error;
 			this.status = Status.REJECTED;
 			LOGGER.info("Promise REJECTED " + Thread.currentThread().getName());
@@ -94,7 +94,7 @@ public class Promise<T> {
 	/**
 	 * Return promise current value (if rejected)
 	 */
-	public Throwable getError() {
+	public Exception getError() {
 		return error;
 	}
 
@@ -112,8 +112,8 @@ public class Promise<T> {
 	 * @param onFulfilled
 	 * @param onRejected
 	 */
-	protected static <W> void doResolve(BiConsumer<Consumer<W>, Consumer<Throwable>> fn, Consumer<W> onFulfilled,
-			Consumer<Throwable> onRejected) {
+	protected static <W> void doResolve(BiConsumer<Consumer<W>, Consumer<Exception>> fn, Consumer<W> onFulfilled,
+			Consumer<Exception> onRejected) {
 		// we use boolean[] instead of boolean to avoid error "Local variable defined in
 		// an enclosing scope must be final or effectively final"
 		BooleanHolder done = new BooleanHolder();
@@ -142,13 +142,13 @@ public class Promise<T> {
 		public Handler() {
 		}
 
-		public Handler(Consumer<T> onFulfilled, Consumer<Throwable> onRejected) {
+		public Handler(Consumer<T> onFulfilled, Consumer<Exception> onRejected) {
 			this.onFulfilled = onFulfilled;
 			this.onRejected = onRejected;
 		}
 
 		public Consumer<T> onFulfilled;
-		public Consumer<Throwable> onRejected;
+		public Consumer<Exception> onRejected;
 	}
 
 	protected void handle(Handler handler) {
@@ -164,7 +164,7 @@ public class Promise<T> {
 		}
 	}
 
-	public <W> Promise<W> then(Function<T, W> onFulfilled, Consumer<Throwable> onRejected) {
+	public <W> Promise<W> then(Function<T, W> onFulfilled, Consumer<Exception> onRejected) {
 		Promise<T> self = this;
 		return new Promise<>((resolve, reject) -> {
 			self.done((result) -> {
@@ -201,7 +201,7 @@ public class Promise<T> {
 		return then(onFulfilled, null);
 	}
 
-	public Promise<T> then(Consumer<T> onFulfilled, Consumer<Throwable> onRejected) {
+	public Promise<T> then(Consumer<T> onFulfilled, Consumer<Exception> onRejected) {
 		Promise<T> that = this;
 		return then((result) -> {
 			if (onFulfilled != null) {
@@ -230,11 +230,14 @@ public class Promise<T> {
 	 * @param onRejected
 	 * @return
 	 */
-	public <W> Promise<W> thenPromise(Function<T, Promise<W>> onFulfilled, Consumer<Throwable> onRejected) {
+	public <W> Promise<W> thenPromise(Function<T, Promise<W>> onFulfilled, Consumer<Exception> onRejected) {
 		Promise<T> orig = this;
 		return new Promise<>((resolve, reject) -> {
 			orig.then(onFulfilled, onRejected).then((promise) -> {
+
+System.err.println("thenPromise 1");
 				promise.then((w) -> {
+System.err.println("thenPromise 2");
 					resolve.accept(w);
 				}, (err) -> {
 					reject.accept(err);
@@ -261,7 +264,7 @@ public class Promise<T> {
 	 * @param onRejected
 	 * @return
 	 */
-	public Promise<T> thenCatch(Consumer<Throwable> onRejected) {
+	public Promise<T> thenCatch(Consumer<Exception> onRejected) {
 		return then((Function<T, T>) null, onRejected);
 	}
 
@@ -271,7 +274,7 @@ public class Promise<T> {
 	 * @param onRejected
 	 * @return
 	 */
-	public Promise<T> thenFinally(BiConsumer<T, Throwable> onRejectedOrOnFulfilled) {
+	public Promise<T> thenFinally(BiConsumer<T, Exception> onRejectedOrOnFulfilled) {
 		return then((t) -> {
 			onRejectedOrOnFulfilled.accept(t, null);
 		}, (err) -> {
@@ -304,7 +307,7 @@ public class Promise<T> {
 	 * - it is called regardless of whether the promise is resolved before or after
 	 * we call .done
 	 */
-	public void done(Consumer<T> onFulfilled, Consumer<Throwable> onRejected) {
+	public void done(Consumer<T> onFulfilled, Consumer<Exception> onRejected) {
 		Handler handler = new Handler(onFulfilled, onRejected);
 		setTimeout(() -> {
 			this.handle(handler);
@@ -323,14 +326,14 @@ public class Promise<T> {
 	/**
 	 * Returns a Promise object that is rejected with a given error
 	 */
-	public static <W> Promise<W> reject(Throwable error) {
+	public static <W> Promise<W> reject(Exception error) {
 		return new Promise<>((resolve, reject) -> {
 			reject.accept(error);
 		});
 	}
 
 	private static final class ResultHolder<W> {
-		public Throwable error;
+		public Exception error;
 		public boolean rejected;
 		public W result;
 	}
@@ -432,7 +435,7 @@ public class Promise<T> {
 
 			// we expect for promises.length promises to finish
 			final CountDownLatch latch = new CountDownLatch(promises.length);
-			List<Throwable> errorList = new ArrayList<>(promises.length);
+			List<Exception> errorList = new ArrayList<>(promises.length);
 
 			// we use a holder to avoid error "Local variable defined in
 			// an enclosing scope must be final or effectively final"
