@@ -43,13 +43,13 @@ public class Promise<T> {
 			Promise.this.value = value;
 			Promise.this.status = Status.FULFILLED;
 			handleHandlers();
-			LOGGER.info("Promise FULFILLED " + Thread.currentThread().getName());
+			LOGGER.fine("Promise FULFILLED " + Thread.currentThread().getName());
 		};
 		Consumer<Exception> reject = (error) -> {
 			this.error = error;
 			this.status = Status.REJECTED;
 			handleHandlers();
-			LOGGER.info("Promise REJECTED " + Thread.currentThread().getName());
+			LOGGER.fine("Promise REJECTED " + Thread.currentThread().getName());
 		};
 		Consumer<T> resolve = (value) -> {
 			try {

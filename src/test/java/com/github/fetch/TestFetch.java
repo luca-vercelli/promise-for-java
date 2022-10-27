@@ -17,7 +17,7 @@ public class TestFetch {
 		Promise<String> p = fetch("https://www.google.com").thenPromise((response) -> (response.text()));
 
 		// ok, this test relies on Google's servers speed...
-		Thread.sleep(10000);
+		Thread.sleep(3000);
 		assertEquals(Status.FULFILLED, p.getStatus());
 		assertNotNull(p.getValue());
 		assertFalse(p.getValue().isEmpty());

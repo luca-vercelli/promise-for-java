@@ -66,7 +66,7 @@ public class TestPromise {
 				.then((response) -> (response.toString())) //
 				.then((response) -> (response + "A"));
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		assertEquals(Status.FULFILLED, p.getStatus());
 		assertEquals("43A", p.getValue());

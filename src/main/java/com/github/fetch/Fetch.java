@@ -66,17 +66,14 @@ public class Fetch {
 	public static Promise<Response> fetch(Request req) {
 		return new Promise<>((resolve, reject) -> {
 			try {
-System.err.println("1");
 				DataOutputStream printout;
 
 				URL url = new URL(req.getUrl());
 
-System.err.println("2");
 				// URL connection channel.
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 				conn.setRequestMethod(req.getMethod());
 
-System.err.println("3");
 				// Let the run-time system (RTS) know that we want input.
 				conn.setDoInput(true);
 
@@ -88,7 +85,6 @@ System.err.println("3");
 					conn.setRequestProperty(entry.getKey(), entry.getValue());
 				}
 
-System.err.println("4");
 				if (!"GET".equals(req.getMethod()) && !req.getBody().isEmpty()) {
 
 					// Let the RTS know that we want to do output.
@@ -102,7 +98,6 @@ System.err.println("4");
 					printout.close();
 				}
 
-System.err.println("5");
 				Response resp = new Response();
 				resp.setStatus(conn.getResponseCode());
 				resp.setHeaders(conn.getHeaderFields());
@@ -114,7 +109,6 @@ System.err.println("5");
 					resp.setBody(new DataInputStream(conn.getErrorStream()));
 				}
 
-System.err.println("6");
 				resolve.accept(resp);
 			} catch (MalformedURLException me) {
 				reject.accept(me);
