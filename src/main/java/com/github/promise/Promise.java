@@ -42,11 +42,13 @@ public class Promise<T> {
 		Consumer<T> fulfill = (value) -> {
 			Promise.this.value = value;
 			Promise.this.status = Status.FULFILLED;
+			handleHandlers();
 			LOGGER.info("Promise FULFILLED " + Thread.currentThread().getName());
 		};
 		Consumer<Exception> reject = (error) -> {
 			this.error = error;
 			this.status = Status.REJECTED;
+			handleHandlers();
 			LOGGER.info("Promise REJECTED " + Thread.currentThread().getName());
 		};
 		Consumer<T> resolve = (value) -> {
@@ -151,6 +153,12 @@ public class Promise<T> {
 		public Consumer<Exception> onRejected;
 	}
 
+	/**
+	 * If the promise is already settled, call handler callbacks; otherwise, just
+	 * append handler to promise handlers list.
+	 * 
+	 * @param handler
+	 */
 	protected void handle(Handler handler) {
 		if (status == Status.PENDING) {
 			handlers.add(handler);
@@ -162,6 +170,16 @@ public class Promise<T> {
 				handler.onRejected.accept(error);
 			}
 		}
+	}
+
+	/**
+	 * Handle all handlers that were expecting for this promise.
+	 */
+	protected void handleHandlers() {
+		for (Promise<T>.Handler handler:handlers) {
+			handle(handler);
+		}
+		handlers.clear();
 	}
 
 	public <W> Promise<W> then(Function<T, W> onFulfilled, Consumer<Exception> onRejected) {
@@ -181,8 +199,10 @@ public class Promise<T> {
 				if (onRejected != null) {
 					try {
 						onRejected.accept(error);
+						reject.accept(error);
 					} catch (RuntimeException ex) {
-						reject.accept(ex);
+						AggregateException ex2 = new AggregateException(ex, error);
+						reject.accept(ex2);
 					}
 				} else {
 					reject.accept(error);
@@ -234,10 +254,7 @@ public class Promise<T> {
 		Promise<T> orig = this;
 		return new Promise<>((resolve, reject) -> {
 			orig.then(onFulfilled, onRejected).then((promise) -> {
-
-System.err.println("thenPromise 1");
 				promise.then((w) -> {
-System.err.println("thenPromise 2");
 					resolve.accept(w);
 				}, (err) -> {
 					reject.accept(err);
@@ -445,7 +462,6 @@ System.err.println("thenPromise 2");
 			for (Promise<W> promise : promises) {
 				promise.then((result) -> {
 					// one promise resolved
-					LOGGER.info("SONO QUI" + result);
 					resultHolder.result = result;
 					resultHolder.rejected = false;
 
