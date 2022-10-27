@@ -191,6 +191,12 @@ public class Promise<T> {
 		});
 	}
 
+	/**
+	 * Shortcut for <code>then(onFulfilled, null)</code>
+	 * 
+	 * @param onFulfilled
+	 * @return
+	 */
 	public <W> Promise<W> then(Function<T, W> onFulfilled) {
 		return then(onFulfilled, null);
 	}
@@ -205,6 +211,12 @@ public class Promise<T> {
 		}, onRejected);
 	}
 
+	/**
+	 * Shortcut for <code>then(onFulfilled, null)</code>
+	 * 
+	 * @param onFulfilled
+	 * @return
+	 */
 	public Promise<T> then(Consumer<T> onFulfilled) {
 		return then(onFulfilled, null);
 	}
@@ -232,6 +244,18 @@ public class Promise<T> {
 	}
 
 	/**
+	 * Special case of <code>then</code> where the return type of
+	 * <code>onFulfilled</code> is another <code>onPromise</code>
+	 * 
+	 * @param <W>
+	 * @param onFulfilled
+	 * @return
+	 */
+	public <W> Promise<W> thenPromise(Function<T, Promise<W>> onFulfilled) {
+		return thenPromise(onFulfilled, null);
+	}
+
+	/**
 	 * A shortcut for <code>then(null, onRejected)</code>
 	 * 
 	 * @param onRejected
@@ -242,7 +266,7 @@ public class Promise<T> {
 	}
 
 	/**
-	 * A shortcut for <code>then(f, f)</code>
+	 * Something like <code>then(f, f)</code>
 	 * 
 	 * @param onRejected
 	 * @return
@@ -256,7 +280,7 @@ public class Promise<T> {
 	}
 
 	/**
-	 * A shortcut for <code>then(f, f)</code>
+	 * Something like <code>then(f, f)</code>
 	 * 
 	 * @param onRejected
 	 * @return
