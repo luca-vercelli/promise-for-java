@@ -11,8 +11,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A Promise represent a value that will be get in the future, or an Exception
@@ -28,8 +26,6 @@ public class Promise<T> {
 	protected Exception error;
 	protected List<Handler> handlers = new LinkedList<>();
 
-	static final Logger LOGGER = Logger.getLogger("com.github.promise");
-
 	/**
 	 * Create new promise
 	 * 
@@ -38,18 +34,15 @@ public class Promise<T> {
 	 */
 	public Promise(BiConsumer<Consumer<T>, Consumer<Exception>> fn) {
 		status = Status.PENDING;
-		LOGGER.fine("Promise constructor BEGIN " + Thread.currentThread().getName());
 		Consumer<T> fulfill = (value) -> {
 			Promise.this.value = value;
 			Promise.this.status = Status.FULFILLED;
 			handleHandlers();
-			LOGGER.fine("Promise FULFILLED " + Thread.currentThread().getName());
 		};
 		Consumer<Exception> reject = (error) -> {
 			this.error = error;
 			this.status = Status.REJECTED;
 			handleHandlers();
-			LOGGER.fine("Promise REJECTED " + Thread.currentThread().getName());
 		};
 		Consumer<T> resolve = (value) -> {
 			try {
@@ -61,7 +54,6 @@ public class Promise<T> {
 		setTimeout(() -> {
 			doResolve(fn, resolve, reject);
 		}, 0);
-		LOGGER.fine("Promise constructor END " + Thread.currentThread().getName());
 	}
 
 	/**
@@ -396,7 +388,8 @@ public class Promise<T> {
 			try {
 				latch.await();
 			} catch (InterruptedException e) {
-				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				reject.accept(e);
+				return;
 			}
 
 			if (resultHolder.rejected) {
@@ -433,7 +426,8 @@ public class Promise<T> {
 			try {
 				latch.await();
 			} catch (InterruptedException e) {
-				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				reject.accept(e);
+				return;
 			}
 
 			resolve.accept(resultList);
@@ -482,13 +476,13 @@ public class Promise<T> {
 			try {
 				latch.await();
 			} catch (InterruptedException e) {
-				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				reject.accept(e);
+				return;
 			}
 
 			if (resultHolder.rejected) {
 				reject.accept(new AggregateException(errorList));
 			} else {
-				LOGGER.info("SONO QUA " + resultHolder.rejected + " " + resultHolder.result);
 				resolve.accept(resultHolder.result);
 			}
 		});
@@ -542,7 +536,8 @@ public class Promise<T> {
 			try {
 				latch.await();
 			} catch (InterruptedException e) {
-				LOGGER.log(Level.SEVERE, e.getMessage(), e);
+				reject.accept(e);
+				return;
 			}
 
 			if (resultHolder.rejected) {

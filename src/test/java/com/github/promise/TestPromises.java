@@ -5,19 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.logging.Level;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class TestPromises {
-
-	@Before
-	public void setUp() {
-
-		// FIXME does not work ?!?
-		Promise.LOGGER.setLevel(Level.ALL);
-	}
 
 	@Test
 	public void testAll() throws InterruptedException {

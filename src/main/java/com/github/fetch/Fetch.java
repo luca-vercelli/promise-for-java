@@ -8,7 +8,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
 import com.github.promise.Promise;
 
@@ -16,8 +15,6 @@ import com.github.promise.Promise;
  * Fetch an URL resource returning a Promise.
  */
 public class Fetch {
-
-	static final Logger LOGGER = Logger.getLogger("com.github.fetch");
 
 	private Fetch() {
 	}

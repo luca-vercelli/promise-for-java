@@ -7,19 +7,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class TestPromise {
-
-	@Before
-	public void setUp() {
-
-		// FIXME does not work ?!?
-		Promise.LOGGER.setLevel(Level.ALL);
-	}
 
 	@Test
 	public void testResolve() throws InterruptedException {
