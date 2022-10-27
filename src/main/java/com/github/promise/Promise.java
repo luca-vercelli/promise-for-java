@@ -195,51 +195,77 @@ public class Promise<T> {
 		return then(onFulfilled, null);
 	}
 
-	public <W> Promise<W> then(Consumer<T> onFulfilled, Consumer<Throwable> onRejected) {
-		Promise<T> self = this;
+	public Promise<T> then(Consumer<T> onFulfilled, Consumer<Throwable> onRejected) {
+		Promise<T> that = this;
+		return then((result) -> {
+			if (onFulfilled != null) {
+				onFulfilled.accept(result);
+			}
+			return that.getValue();
+		}, onRejected);
+	}
+
+	public Promise<T> then(Consumer<T> onFulfilled) {
+		return then(onFulfilled, null);
+	}
+
+	/**
+	 * Special case of <code>then</code> where the return type of
+	 * <code>onFulfilled</code> is another <code>onPromise</code>
+	 * 
+	 * @param <W>
+	 * @param onFulfilled
+	 * @param onRejected
+	 * @return
+	 */
+	public <W> Promise<W> thenPromise(Function<T, Promise<W>> onFulfilled, Consumer<Throwable> onRejected) {
+		Promise<T> orig = this;
 		return new Promise<>((resolve, reject) -> {
-			self.done((result) -> {
-				if (onFulfilled != null) {
-					try {
-						onFulfilled.accept(result);
-						resolve.accept(null);
-					} catch (RuntimeException ex) {
-						reject.accept(ex);
-					}
-				} else {
-					resolve.accept(null);
-				}
-			}, (error) -> {
-				if (onRejected != null) {
-					try {
-						onRejected.accept(error);
-					} catch (RuntimeException ex) {
-						reject.accept(ex);
-					}
-				} else {
-					reject.accept(error);
-				}
+			orig.then(onFulfilled, onRejected).then((promise) -> {
+				promise.then((w) -> {
+					resolve.accept(w);
+				}, (err) -> {
+					reject.accept(err);
+				});
 			});
 		});
 	}
 
-	public <W> Promise<W> then(Consumer<T> onFulfilled) {
-		return then(onFulfilled, null);
-	}
-
-	public <W> Promise<W> thenPromise(Function<T, Promise<W>> onFulfilled, Consumer<Throwable> onRejected) {
-		return null;
-	}
-
+	/**
+	 * A shortcut for <code>then(null, onRejected)</code>
+	 * 
+	 * @param onRejected
+	 * @return
+	 */
 	public Promise<T> thenCatch(Consumer<Throwable> onRejected) {
 		return then((Function<T, T>) null, onRejected);
 	}
 
+	/**
+	 * A shortcut for <code>then(f, f)</code>
+	 * 
+	 * @param onRejected
+	 * @return
+	 */
 	public Promise<T> thenFinally(BiConsumer<T, Throwable> onRejectedOrOnFulfilled) {
 		return then((t) -> {
 			onRejectedOrOnFulfilled.accept(t, null);
 		}, (err) -> {
 			onRejectedOrOnFulfilled.accept(null, err);
+		});
+	}
+
+	/**
+	 * A shortcut for <code>then(f, f)</code>
+	 * 
+	 * @param onRejected
+	 * @return
+	 */
+	public Promise<T> thenFinally(Runnable runnable) {
+		return then((t) -> {
+			runnable.run();
+		}, (err) -> {
+			runnable.run();
 		});
 	}
 
