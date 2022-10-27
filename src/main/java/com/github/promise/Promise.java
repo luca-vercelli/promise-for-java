@@ -5,7 +5,9 @@ import static com.github.promise.SetTimeout.setTimeout;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -13,6 +15,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * A Promise represent a value that will be get in the future, or an Exception
+ * that will be thrown in the future.
  * 
  * @see https://www.promisejs.org/implementing/
  * @param <T>
@@ -56,6 +60,21 @@ public class Promise<T> {
 			doResolve(fn, resolve, reject);
 		}, 0);
 		LOGGER.fine("Promise constructor END " + Thread.currentThread().getName());
+	}
+
+	/**
+	 * Create new promise from a CompletableFuture
+	 * 
+	 * @param future
+	 */
+	public Promise(CompletableFuture<T> future) {
+		this((resolve, reject) -> {
+			try {
+				resolve(future.get());
+			} catch (InterruptedException | ExecutionException e) {
+				reject(e);
+			}
+		});
 	}
 
 	/**
@@ -206,6 +225,22 @@ public class Promise<T> {
 
 	public <W> Promise<W> then(Consumer<T> onFulfilled) {
 		return then(onFulfilled, null);
+	}
+
+	public <W> Promise<W> thenPromise(Function<T, Promise<W>> onFulfilled, Consumer<Throwable> onRejected) {
+		return null;
+	}
+
+	public Promise<T> thenCatch(Consumer<Throwable> onRejected) {
+		return then((Function<T, T>) null, onRejected);
+	}
+
+	public Promise<T> thenFinally(BiConsumer<T, Throwable> onRejectedOrOnFulfilled) {
+		return then((t) -> {
+			onRejectedOrOnFulfilled.accept(t, null);
+		}, (err) -> {
+			onRejectedOrOnFulfilled.accept(null, err);
+		});
 	}
 
 	/**
