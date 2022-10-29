@@ -1,4 +1,4 @@
-# promise-for-java
+# promise4j
 JavaScript-like Promise for Java
 
 This project is inspired by https://github.com/riversun/java-promise and https://www.promisejs.org/implementing/.

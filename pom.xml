@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.github</groupId>
-	<artifactId>promise-for-java</artifactId>
+	<artifactId>promise4j</artifactId>
 	<version>0.0.1</version>
 	<name>Promise for Java</name>
 	<description>Javascript-like Promise API for Java</description>
