@@ -5,9 +5,9 @@ import static com.github.promise.SetTimeout.setTimeout;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,7 +67,7 @@ public class Promise<T> {
 	 * 
 	 * @param future
 	 */
-	public Promise(CompletableFuture<T> future) {
+	public Promise(Future<T> future) {
 		this((resolve, reject) -> {
 			try {
 				resolve(future.get());
