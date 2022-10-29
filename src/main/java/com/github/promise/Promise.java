@@ -62,6 +62,9 @@ public class Promise<T> {
 		t.start();
 	}
 
+	private Promise() {
+	}
+
 	/**
 	 * Create new promise from a CompletableFuture
 	 * 
@@ -333,18 +336,20 @@ public class Promise<T> {
 	 * Returns a Promise object that is resolved with a given value
 	 */
 	public static <W> Promise<W> resolve(W value) {
-		return new Promise<>((resolve, reject) -> {
-			resolve.accept(value);
-		});
+		Promise<W> p = new Promise<>();
+		p.status = Status.FULFILLED;
+		p.value = value;
+		return p;
 	}
 
 	/**
 	 * Returns a Promise object that is rejected with a given error
 	 */
 	public static <W> Promise<W> reject(Exception error) {
-		return new Promise<>((resolve, reject) -> {
-			reject.accept(error);
-		});
+		Promise<W> p = new Promise<>();
+		p.status = Status.REJECTED;
+		p.error = error;
+		return p;
 	}
 
 	private static final class ResultHolder<W> {
