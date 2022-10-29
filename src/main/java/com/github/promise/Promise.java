@@ -342,7 +342,10 @@ public class Promise<T> {
 		Executors.newCachedThreadPool().submit(() -> {
 			then((w) -> {
 				c.complete(w);
+			}, (error) -> {
+				c.completeExceptionally(error);
 			});
+
 		});
 		return c;
 	}
