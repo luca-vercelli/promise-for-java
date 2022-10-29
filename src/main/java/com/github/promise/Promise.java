@@ -5,8 +5,10 @@ import static com.github.promise.SetTimeout.setTimeout;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -330,6 +332,19 @@ public class Promise<T> {
 		setTimeout(() -> {
 			this.handle(handler);
 		}, 0);
+	}
+
+	/**
+	 * Convert to CompletableFuture
+	 */
+	public CompletableFuture<T> toCompletableFuture() {
+		CompletableFuture<T> c = new CompletableFuture<>();
+		Executors.newCachedThreadPool().submit(() -> {
+			then((w) -> {
+				c.complete(w);
+			});
+		});
+		return c;
 	}
 
 	/**
